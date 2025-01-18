@@ -10,12 +10,12 @@ import quickfix.field.*;
 import quickfix.fix44.ExecutionReport;
 import quickfix.fix44.NewOrderSingle;
 
-public class FixApplication {
+public class FixMsgCreate {
 
-    private static final Logger logger = LogManager.getLogger(FixApplication.class);
+    private static final Logger logger = LogManager.getLogger(FixMsgCreate.class);
 
     // Method to generate New Order Single message
-    public NewOrderSingle createNewOrder(char side, char ordType, String symbol, int quantity, double price)
+    public NewOrderSingle newOrderSingle(char side, char ordType, String symbol, int quantity, double price)
             throws Exception {
         NewOrderSingle order = new NewOrderSingle(new ClOrdID(UUID.randomUUID().toString()),
                 new Side(side), new TransactTime(LocalDateTime.now()), new OrdType(ordType));
@@ -29,7 +29,7 @@ public class FixApplication {
     }
 
     // Method to generate Execution Report New
-    public ExecutionReport createExecutionReportNew(NewOrderSingle order) throws Exception {
+    public ExecutionReport executionReportNew(NewOrderSingle order) throws Exception {
         ExecutionReport executionReportNew = new ExecutionReport();
 
         logger.info(executionReportNew);
