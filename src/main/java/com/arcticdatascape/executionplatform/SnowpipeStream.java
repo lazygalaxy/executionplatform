@@ -53,7 +53,7 @@ public class SnowpipeStream {
 
     public void insert(Message fixMessage) throws Exception {
         Map<String, Object> row = new HashMap<String, Object>();
-        row.put("fix", fixMessage.toString());
+        row.put("fixmessage", fixMessage.toString());
         // Insert the row with the current offset_token
         InsertValidationResponse response = channel.insertRow(row, null);
         if (response.hasErrors()) {

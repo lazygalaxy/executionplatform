@@ -10,7 +10,8 @@ public class App {
         FixMsgCreate fixMsgCreate = new FixMsgCreate();
         SnowpipeStream snowpipeStream = new SnowpipeStream();
         // Simulate creating an order
-        NewOrderSingle newOrderSingle = fixMsgCreate.newOrderSingle(Side.BUY, OrdType.LIMIT, "AAPL", 1000, 150.50);
+        NewOrderSingle newOrderSingle = fixMsgCreate.newOrderSingle(Side.BUY, OrdType.LIMIT, 1000, 150.50,
+                "CH0038863350", "CHF", "XSWX", "101010.001");
         snowpipeStream.insert(newOrderSingle);
         ExecutionReport executionReportNew = fixMsgCreate.executionReportNew(newOrderSingle);
         snowpipeStream.insert(executionReportNew);
