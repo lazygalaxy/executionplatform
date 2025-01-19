@@ -28,6 +28,7 @@ import quickfix.fix42.Message;
 
 public class SnowpipeStream {
     private static final Logger logger = LogManager.getLogger(FixMsgCreate.class);
+
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HH:mm:ss.SSS");
     private final Map<Integer, Pair<String, Character>> tagToNameMap = new HashMap<>();
 

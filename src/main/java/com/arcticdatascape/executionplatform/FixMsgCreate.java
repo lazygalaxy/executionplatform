@@ -14,11 +14,12 @@ public class FixMsgCreate {
     private static final Logger logger = LogManager.getLogger(FixMsgCreate.class);
 
     // Method to generate Execution Report New
-    public ExecutionReport executionReportNew(char side, char ordType, int quantity, double price, String isin,
+    public ExecutionReport executionReportNew(char side, char ordType, int quantity, double price, String symbol,
             String currency, String securityExchange, String senderCompId, String clientAccount) throws Exception {
         ExecutionReport executionReportNew = new ExecutionReport(new OrderID(UUID.randomUUID().toString()),
                 new ExecID(UUID.randomUUID().toString()), new ExecTransType(ExecTransType.NEW),
-                new ExecType(ExecType.NEW), new OrdStatus(OrdStatus.NEW), new Symbol(isin),
+                new ExecType(ExecType.NEW), new OrdStatus(OrdStatus.NEW), new Symbol(
+                        symbol),
                 new Side(side), new LeavesQty(quantity), new CumQty(0), new AvgPx(0));
 
         executionReportNew.set(new ClOrdID(UUID.randomUUID().toString()));
@@ -44,7 +45,7 @@ public class FixMsgCreate {
     }
 
     // fully filled trade
-    public ExecutionReport executionReportTrade(ExecutionReport executionReportNew, String broker, double lastPx)
+    public ExecutionReport executionReportTrade(ExecutionReport executionReportNew, String execBroker, double lastPx)
             throws Exception {
         ExecutionReport executionReportTrade = (ExecutionReport) executionReportNew.clone();
 
@@ -52,7 +53,7 @@ public class FixMsgCreate {
         executionReportTrade.set(new ExecType(ExecType.TRADE));
         executionReportTrade.set(new OrdStatus(OrdStatus.FILLED));
 
-        executionReportTrade.set(new ExecBroker(broker));
+        executionReportTrade.set(new ExecBroker(execBroker));
 
         executionReportTrade.set(new LastShares(executionReportNew.getOrderQty().getValue()));
         executionReportTrade.set(new LastPx(lastPx));
