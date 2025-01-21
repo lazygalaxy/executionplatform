@@ -101,6 +101,7 @@ public class SnowpipeStream {
             String[] pair = field.split("=");
             String label = tagToNameMap.get(Integer.parseInt(pair[0]));
             if (label != null) {
+                label = label.toUpperCase();
                 String value = pair[1];
                 if (label.endsWith("TIME"))
                     row.put(label, LocalDateTime.parse(value, formatter));
