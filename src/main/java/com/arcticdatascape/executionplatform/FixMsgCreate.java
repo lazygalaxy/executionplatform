@@ -18,8 +18,7 @@ public class FixMsgCreate {
             String currency, String securityExchange, String senderCompId, String clientAccount) throws Exception {
         ExecutionReport executionReportNew = new ExecutionReport(new OrderID(UUID.randomUUID().toString()),
                 new ExecID(UUID.randomUUID().toString()), new ExecTransType(ExecTransType.NEW),
-                new ExecType(ExecType.NEW), new OrdStatus(OrdStatus.NEW), new Symbol(
-                        symbol),
+                new ExecType(ExecType.NEW), new OrdStatus(OrdStatus.NEW), new Symbol(symbol),
                 new Side(side), new LeavesQty(quantity), new CumQty(0), new AvgPx(0));
 
         executionReportNew.set(new ClOrdID(UUID.randomUUID().toString()));

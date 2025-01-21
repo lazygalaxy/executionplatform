@@ -13,53 +13,49 @@ import java.util.Properties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import net.snowflake.ingest.internal.apache.commons.math3.util.Pair;
 import net.snowflake.ingest.streaming.InsertValidationResponse;
 import net.snowflake.ingest.streaming.OpenChannelRequest;
 import net.snowflake.ingest.streaming.SnowflakeStreamingIngestChannel;
 import net.snowflake.ingest.streaming.SnowflakeStreamingIngestClient;
 import net.snowflake.ingest.streaming.SnowflakeStreamingIngestClientFactory;
-import quickfix.field.ExecType;
 import quickfix.field.OrdStatus;
 import quickfix.field.OrdType;
 import quickfix.field.Side;
 import quickfix.fix42.ExecutionReport;
-import quickfix.fix42.Message;
 
 public class SnowpipeStream {
     private static final Logger logger = LogManager.getLogger(FixMsgCreate.class);
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HH:mm:ss.SSS");
-    private final Map<Integer, Pair<String, Character>> tagToNameMap = new HashMap<>();
+    private final Map<Integer, String> tagToNameMap = new HashMap<>();
 
     // Open a streaming ingest channel from the given client
     private final SnowflakeStreamingIngestChannel ordersChannel;
-    private final SnowflakeStreamingIngestChannel tradesChannel;
 
     SnowpipeStream() throws Exception {
 
-        tagToNameMap.put(1, new Pair<String, Character>("Account", ExecType.NEW));
-        tagToNameMap.put(6, new Pair<String, Character>("AvgPx", ExecType.NEW));
-        tagToNameMap.put(11, new Pair<String, Character>("ClOrdID", ExecType.NEW));
-        tagToNameMap.put(14, new Pair<String, Character>("CumQty", ExecType.NEW));
-        tagToNameMap.put(15, new Pair<String, Character>("Currency", ExecType.NEW));
-        tagToNameMap.put(17, new Pair<String, Character>("ExecID", ExecType.TRADE));
-        tagToNameMap.put(30, new Pair<String, Character>("LastMkt", ExecType.TRADE));
-        tagToNameMap.put(31, new Pair<String, Character>("LastPx", ExecType.TRADE));
-        tagToNameMap.put(32, new Pair<String, Character>("LastShares", ExecType.TRADE));
-        tagToNameMap.put(37, new Pair<String, Character>("OrderID", null));
-        tagToNameMap.put(38, new Pair<String, Character>("OrderQty", ExecType.NEW));
-        tagToNameMap.put(39, new Pair<String, Character>("OrdStatus", ExecType.NEW));
-        tagToNameMap.put(40, new Pair<String, Character>("OrdType", ExecType.NEW));
-        tagToNameMap.put(44, new Pair<String, Character>("Price", ExecType.NEW));
-        tagToNameMap.put(49, new Pair<String, Character>("SenderCompID", ExecType.NEW));
-        tagToNameMap.put(52, new Pair<String, Character>("SendingTime", null));
-        tagToNameMap.put(54, new Pair<String, Character>("Side", ExecType.NEW));
-        tagToNameMap.put(55, new Pair<String, Character>("Symbol", ExecType.NEW));
-        tagToNameMap.put(60, new Pair<String, Character>("TransactTime", null));
-        tagToNameMap.put(76, new Pair<String, Character>("ExecBroker", ExecType.TRADE));
-        tagToNameMap.put(151, new Pair<String, Character>("LeavesQty", ExecType.NEW));
-        tagToNameMap.put(207, new Pair<String, Character>("SecurityExchange", ExecType.NEW));
+        tagToNameMap.put(1, "Account");
+        tagToNameMap.put(6, "AvgPx");
+        tagToNameMap.put(11, "ClOrdID");
+        tagToNameMap.put(14, "CumQty");
+        tagToNameMap.put(15, "Currency");
+        tagToNameMap.put(17, "ExecID");
+        tagToNameMap.put(30, "LastMkt");
+        tagToNameMap.put(31, "LastPx");
+        tagToNameMap.put(32, "LastShares");
+        tagToNameMap.put(37, "OrderID");
+        tagToNameMap.put(38, "OrderQty");
+        tagToNameMap.put(39, "OrdStatus");
+        tagToNameMap.put(40, "OrdType");
+        tagToNameMap.put(44, "Price");
+        tagToNameMap.put(49, "SenderCompID");
+        tagToNameMap.put(52, "SendingTime");
+        tagToNameMap.put(54, "Side");
+        tagToNameMap.put(55, "Symbol");
+        tagToNameMap.put(60, "TransactTime");
+        tagToNameMap.put(76, "ExecBroker");
+        tagToNameMap.put(151, "LeavesQty");
+        tagToNameMap.put(207, "SecurityExchange");
 
         Iterator<Map.Entry<String, JsonNode>> propIt = new ObjectMapper()
                 .readTree(getClass().getClassLoader().getResourceAsStream("profile.json")).fields();
@@ -85,30 +81,10 @@ public class SnowpipeStream {
                 .build();
 
         ordersChannel = client.openChannel(ordersRequest);
-
-        OpenChannelRequest tradesRequest = OpenChannelRequest.builder("TRADE_CHANNEL")
-                .setDBName("PULO1")
-                .setSchemaName("INTERNALFLOW")
-                .setTableName("TBLTRADES")
-                .setOnErrorOption(
-                        OpenChannelRequest.OnErrorOption.CONTINUE) // Another ON_ERROR option is ABORT
-                .build();
-
-        tradesChannel = client.openChannel(tradesRequest);
     }
 
     public void insert(ExecutionReport executionReport) throws Exception {
-
-        switch (executionReport.getExecType().getValue()) {
-            case ExecType.NEW:
-                insertRow(ordersChannel, getRow(executionReport, ExecType.NEW));
-                break;
-            case ExecType.TRADE:
-                insertRow(tradesChannel, getRow(executionReport, ExecType.TRADE));
-                insertRow(ordersChannel, getRow(executionReport, ExecType.NEW));
-                break;
-        }
-
+        insertRow(ordersChannel, getRow(executionReport));
     }
 
     private void insertRow(SnowflakeStreamingIngestChannel channel, Map<String, Object> row) {
@@ -117,31 +93,30 @@ public class SnowpipeStream {
             throw response.getInsertErrors().get(0).getException();
     }
 
-    private Map<String, Object> getRow(ExecutionReport fixMessage, Character execType) throws Exception {
+    private Map<String, Object> getRow(ExecutionReport fixMessage) throws Exception {
         Map<String, Object> row = new HashMap<String, Object>();
         String[] fields = fixMessage.toString().split("\001");
 
         for (String field : fields) {
             String[] pair = field.split("=");
-            Pair<String, Character> info = tagToNameMap.get(Integer.parseInt(pair[0]));
-            if (info != null && (info.getSecond() == null || execType.equals(info.getSecond()))) {
-                String label = info.getFirst().toUpperCase();
+            String label = tagToNameMap.get(Integer.parseInt(pair[0]));
+            if (label != null) {
                 String value = pair[1];
                 if (label.endsWith("TIME"))
-                    row.put(info.getFirst(), LocalDateTime.parse(value, formatter));
+                    row.put(label, LocalDateTime.parse(value, formatter));
                 else if (label.equals("SIDE"))
-                    row.put(info.getFirst(), fixMessage.getSide().getValue() == Side.BUY ? "buy" : "sell");
+                    row.put(label, fixMessage.getSide().getValue() == Side.BUY ? "buy" : "sell");
                 else if (label.equals("ORDTYPE"))
-                    row.put(info.getFirst(), fixMessage.getOrdType().getValue() == OrdType.LIMIT ? "limit" : "market");
+                    row.put(label, fixMessage.getOrdType().getValue() == OrdType.LIMIT ? "limit" : "market");
                 else if (label.equals("ORDSTATUS"))
-                    row.put(info.getFirst(), fixMessage.getOrdStatus().getValue() == OrdStatus.NEW ? "new"
+                    row.put(label, fixMessage.getOrdStatus().getValue() == OrdStatus.NEW ? "new"
                             : fixMessage.getOrdStatus().getValue() == OrdStatus.FILLED ? "filled" : "partially_filled");
                 else if ((label.equals("PRICE") || label.equals("AVGPX"))
                         && (value == null || value.equals("0") || value
                                 .equals("0.00")))
                     continue;
                 else
-                    row.put(info.getFirst(), value);
+                    row.put(label, value);
             }
         }
 
@@ -150,6 +125,5 @@ public class SnowpipeStream {
 
     public void close() throws Exception {
         ordersChannel.close().get();
-        tradesChannel.close().get();
     }
 }
