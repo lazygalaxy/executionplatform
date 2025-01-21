@@ -1,4 +1,4 @@
-package com.arcticdatascape.executionplatform;
+package com.arcticarchitects.executionplatform;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.arcticdatascape.executionplatform;
+package com.arcticarchitects.executionplatform;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

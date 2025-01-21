@@ -1,4 +1,4 @@
-package com.arcticdatascape.executionplatform;
+package com.arcticarchitects.executionplatform;
 
 public class FixClient {
     public String senderCompID;
