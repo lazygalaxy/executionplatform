@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import quickfix.field.*;
@@ -15,7 +16,8 @@ public class FixMsgCreate {
 
     // Method to generate Execution Report New
     public ExecutionReport executionReportNew(char side, char ordType, int quantity, double price, String symbol,
-            String currency, String securityExchange, String senderCompId, String clientAccount) throws Exception {
+            String currency, String securityExchange, String senderCompId, String clientAccount,
+            LocalDateTime transactTime, long latency) throws Exception {
         ExecutionReport executionReportNew = new ExecutionReport(new OrderID(UUID.randomUUID().toString()),
                 new ExecID(UUID.randomUUID().toString()), new ExecTransType(ExecTransType.NEW),
                 new ExecType(ExecType.NEW), new OrdStatus(OrdStatus.NEW), new Symbol(symbol),
@@ -37,14 +39,15 @@ public class FixMsgCreate {
         executionReportNew.getHeader().setString(49, senderCompId);
         executionReportNew.set(new Account(clientAccount));
 
-        executionReportNew.set(new TransactTime(LocalDateTime.now()));
-        executionReportNew.getHeader().setUtcTimeStamp(52, LocalDateTime.now(), true);
+        executionReportNew.set(new TransactTime(transactTime));
+        executionReportNew.getHeader().setUtcTimeStamp(52, transactTime.plus(latency, ChronoUnit.MILLIS), true);
 
         return executionReportNew;
     }
 
     // fully filled trade
-    public ExecutionReport executionReportTrade(ExecutionReport executionReportNew, String execBroker, double lastPx)
+    public ExecutionReport executionReportTrade(ExecutionReport executionReportNew, String execBroker, double lastPx,
+            LocalDateTime transactTime, long latency)
             throws Exception {
         ExecutionReport executionReportTrade = (ExecutionReport) executionReportNew.clone();
 
@@ -62,8 +65,8 @@ public class FixMsgCreate {
         executionReportTrade.set(new CumQty(executionReportNew.getOrderQty().getValue()));
         executionReportTrade.set(new AvgPx(lastPx));
 
-        executionReportTrade.set(new TransactTime(LocalDateTime.now()));
-        executionReportTrade.getHeader().setUtcTimeStamp(52, LocalDateTime.now(), true);
+        executionReportTrade.set(new TransactTime(transactTime));
+        executionReportTrade.getHeader().setUtcTimeStamp(52, transactTime.plus(latency, ChronoUnit.MILLIS), true);
 
         return executionReportTrade;
     }

@@ -34,7 +34,7 @@ public class SnowpipeStream {
 
     SnowpipeStream() throws Exception {
 
-        tagToNameMap.put(1, "Account");
+        tagToNameMap.put(1, "Customer");
         tagToNameMap.put(6, "AvgPx");
         tagToNameMap.put(11, "ClOrdID");
         tagToNameMap.put(14, "CumQty");
