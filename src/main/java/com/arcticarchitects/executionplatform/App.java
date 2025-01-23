@@ -123,7 +123,7 @@ public class App {
         private static void insert(LocalDateTime newTransactTime, LocalDateTime tradeTransactTime, long latency,
                         List<Customer> customers)
                         throws Exception {
-                Customer customers = customers.get(random.nextInt(customers.size()));
+                Customer customer = customers.get(random.nextInt(customers.size()));
                 Asset asset = assets.get(random.nextInt(assets.size()));
                 Order order = orders.get(random.nextInt(orders.size()));
 
@@ -135,8 +135,8 @@ public class App {
                                 asset.symbol,
                                 asset.currency,
                                 asset.securityExchange,
-                                customers.senderCompID,
-                                customers.account, newTransactTime, 100);
+                                customer.senderCompID,
+                                customer.account, newTransactTime, latency);
                 snowpipeStream.insert(executionReportNew);
 
                 ExecutionReport executionReportTrade = fixMsgCreate.executionReportTrade(executionReportNew,
