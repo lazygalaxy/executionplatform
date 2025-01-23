@@ -22,6 +22,8 @@ public class App {
 
         private static final List<Customer> normalCustomer = new ArrayList<Customer>();
         private static final List<Customer> zetaHeavyCustomer = new ArrayList<Customer>();
+        private static final List<Customer> bloombergLatencyCustomer = new ArrayList<Customer>();
+
         private static final List<Asset> assets = new ArrayList<Asset>();
         private static final List<Order> orders = new ArrayList<Order>();
 
@@ -32,23 +34,43 @@ public class App {
                 fixMsgCreate = new FixMsgCreate();
                 snowpipeStream = new SnowpipeStream();
 
-                normalCustomer.add(new Customer("BLOOMBERG", "APLHA BANK"));
-                normalCustomer.add(new Customer("BLOOMBERG", "BETA BANK"));
-                normalCustomer.add(new Customer("BLOOMBERG", "GAMMA BANK"));
-                normalCustomer.add(new Customer("NYFIX", "DELTA BANK"));
-                normalCustomer.add(new Customer("NYFIX", "EPSILON BANK"));
-                normalCustomer.add(new Customer("AUTEX", "ZETA BANK"));
+                normalCustomer.add(new Customer("BLOOMBERG", "APLHA BANK", 23));
+                normalCustomer.add(new Customer("BLOOMBERG", "BETA BANK", 23));
+                normalCustomer.add(new Customer("BLOOMBERG", "GAMMA BANK", 23));
+                normalCustomer.add(new Customer("NYFIX", "DELTA BANK", 13));
+                normalCustomer.add(new Customer("NYFIX", "EPSILON BANK", 13));
+                normalCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
 
-                zetaHeavyCustomer.add(new Customer("BLOOMBERG", "APLHA BANK"));
-                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
-                zetaHeavyCustomer.add(new Customer("BLOOMBERG", "BETA BANK"));
-                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
-                zetaHeavyCustomer.add(new Customer("BLOOMBERG", "GAMMA BANK"));
-                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
-                zetaHeavyCustomer.add(new Customer("NYFIX", "DELTA BANK"));
-                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
-                zetaHeavyCustomer.add(new Customer("NYFIX", "EPSILON BANK"));
-                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
+                zetaHeavyCustomer.add(new Customer("BLOOMBERG", "APLHA BANK", 23));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("BLOOMBERG", "BETA BANK", 23));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("BLOOMBERG", "GAMMA BANK", 23));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("NYFIX", "DELTA BANK", 13));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("NYFIX", "EPSILON BANK", 13));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
+
+                bloombergLatencyCustomer.add(new Customer("BLOOMBERG", "APLHA BANK", 350));
+                bloombergLatencyCustomer.add(new Customer("BLOOMBERG", "BETA BANK", 350));
+                bloombergLatencyCustomer.add(new Customer("BLOOMBERG", "GAMMA BANK", 350));
+                bloombergLatencyCustomer.add(new Customer("BLOOMBERG", "APLHA BANK", 350));
+                bloombergLatencyCustomer.add(new Customer("BLOOMBERG", "BETA BANK", 350));
+                bloombergLatencyCustomer.add(new Customer("BLOOMBERG", "GAMMA BANK", 350));
+                bloombergLatencyCustomer.add(new Customer("NYFIX", "DELTA BANK", 13));
+                bloombergLatencyCustomer.add(new Customer("NYFIX", "EPSILON BANK", 13));
+                bloombergLatencyCustomer.add(new Customer("AUTEX", "ZETA BANK", 8));
 
                 assets.add(new Asset("MSFT", "USD", "XNAS", 429.03, "BOFA"));
                 assets.add(new Asset("NVDA", "USD", "XNAS", 147.07, "BOFA"));
@@ -84,26 +106,27 @@ public class App {
                 // historicScenarion(LocalDateTime.of(2025, 1, 2, 14, 30, 0));
 
                 // Normal
-                realTimeScenarion(13, 1000, normalCustomer);
+                realTimeScenarion(1000, normalCustomer);
 
-                // Latency Increase
-                // realTimeScenarion(100,1000, normalCustomer);
+                // Latency Increase Bloomberg
+                // realTimeScenarion(1000, bloombergLatencyCustomer);
 
-                // Order Burst
-                // realTimeScenarion(13,250, normalCustomer);
+                // Order Burst, High Trading Day
+                // realTimeScenarion(250, normalCustomer);
 
                 // Zeta Bank Burst
-                // realTimeScenarion(13,250, zetaHeavyCustomer);
+                // realTimeScenarion(500, zetaHeavyCustomer);
 
                 snowpipeStream.close();
                 logger.info("exit!!!!!");
         }
 
-        private static void realTimeScenarion(long latency, long sleep, List<Customer> customers) throws Exception {
+        private static void realTimeScenarion(long sleep, List<Customer> customers) throws Exception {
                 while (System.in.available() == 0) {
                         Thread.sleep(sleep);
                         LocalDateTime now = LocalDateTime.now();
-                        insert(now, now.plus(latency + 7, ChronoUnit.MILLIS), latency, customers);
+                        Customer customer = customers.get(random.nextInt(customers.size()));
+                        insert(now, now.plus(customer.latency + 7, ChronoUnit.MILLIS), customer);
                 }
         }
 
@@ -112,7 +135,9 @@ public class App {
                 LocalDateTime nowDateTime = LocalDateTime.now();
                 while (currentDateTime.isBefore(nowDateTime)) {
                         logger.info(currentDateTime);
-                        insert(currentDateTime, currentDateTime.plus(20, ChronoUnit.MILLIS), 13, normalCustomer);
+                        Customer customer = normalCustomer.get(random.nextInt(normalCustomer.size()));
+                        insert(currentDateTime, currentDateTime.plus(customer.latency + 7, ChronoUnit.MILLIS),
+                                        customer);
                         currentDateTime = currentDateTime.plusSeconds(1);
                         if (currentDateTime.getHour() >= 15 && currentDateTime.getMinute() > 30)
                                 currentDateTime = currentDateTime.plusDays(1).withHour(14).withMinute(30).withSecond(0);
@@ -120,10 +145,9 @@ public class App {
                 }
         }
 
-        private static void insert(LocalDateTime newTransactTime, LocalDateTime tradeTransactTime, long latency,
-                        List<Customer> customers)
+        private static void insert(LocalDateTime newTransactTime, LocalDateTime tradeTransactTime, Customer customer)
                         throws Exception {
-                Customer customer = customers.get(random.nextInt(customers.size()));
+
                 Asset asset = assets.get(random.nextInt(assets.size()));
                 Order order = orders.get(random.nextInt(orders.size()));
 
@@ -136,11 +160,11 @@ public class App {
                                 asset.currency,
                                 asset.securityExchange,
                                 customer.senderCompID,
-                                customer.account, newTransactTime, latency);
+                                customer.account, newTransactTime, customer.latency);
                 snowpipeStream.insert(executionReportNew);
 
                 ExecutionReport executionReportTrade = fixMsgCreate.executionReportTrade(executionReportNew,
-                                asset.execBroker, asset.getLastPx(order.side), tradeTransactTime, latency);
+                                asset.execBroker, asset.getLastPx(order.side), tradeTransactTime, customer.latency);
                 snowpipeStream.insert(executionReportTrade);
         }
 }
