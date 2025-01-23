@@ -20,7 +20,8 @@ public class App {
         private static final Logger logger = LogManager.getLogger(FixMsgCreate.class);
         private static final Random random = new Random();
 
-        private static final List<Customer> customers = new ArrayList<Customer>();
+        private static final List<Customer> normalCustomer = new ArrayList<Customer>();
+        private static final List<Customer> zetaHeavyCustomer = new ArrayList<Customer>();
         private static final List<Asset> assets = new ArrayList<Asset>();
         private static final List<Order> orders = new ArrayList<Order>();
 
@@ -31,12 +32,23 @@ public class App {
                 fixMsgCreate = new FixMsgCreate();
                 snowpipeStream = new SnowpipeStream();
 
-                customers.add(new Customer("BLOOMBERG", "APLHA BANK"));
-                customers.add(new Customer("BLOOMBERG", "BETA BANK"));
-                customers.add(new Customer("BLOOMBERG", "GAMMA BANK"));
-                customers.add(new Customer("NYFIX", "DELTA BANK"));
-                customers.add(new Customer("NYFIX", "EPSILON BANK"));
-                customers.add(new Customer("AUTEX", "ZETA BANK"));
+                normalCustomer.add(new Customer("BLOOMBERG", "APLHA BANK"));
+                normalCustomer.add(new Customer("BLOOMBERG", "BETA BANK"));
+                normalCustomer.add(new Customer("BLOOMBERG", "GAMMA BANK"));
+                normalCustomer.add(new Customer("NYFIX", "DELTA BANK"));
+                normalCustomer.add(new Customer("NYFIX", "EPSILON BANK"));
+                normalCustomer.add(new Customer("AUTEX", "ZETA BANK"));
+
+                zetaHeavyCustomer.add(new Customer("BLOOMBERG", "APLHA BANK"));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
+                zetaHeavyCustomer.add(new Customer("BLOOMBERG", "BETA BANK"));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
+                zetaHeavyCustomer.add(new Customer("BLOOMBERG", "GAMMA BANK"));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
+                zetaHeavyCustomer.add(new Customer("NYFIX", "DELTA BANK"));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
+                zetaHeavyCustomer.add(new Customer("NYFIX", "EPSILON BANK"));
+                zetaHeavyCustomer.add(new Customer("AUTEX", "ZETA BANK"));
 
                 assets.add(new Asset("MSFT", "USD", "XNAS", 429.03, "BOFA"));
                 assets.add(new Asset("NVDA", "USD", "XNAS", 147.07, "BOFA"));
@@ -72,23 +84,26 @@ public class App {
                 // historicScenarion(LocalDateTime.of(2025, 1, 2, 14, 30, 0));
 
                 // Normal
-                realTimeScenarion(13, 1000);
+                realTimeScenarion(13, 1000, normalCustomer);
 
                 // Latency Increase
-                // realTimeScenarion(100,1000);
+                // realTimeScenarion(100,1000, normalCustomer);
 
                 // Order Burst
-                // realTimeScenarion(13,250);
+                // realTimeScenarion(13,250, normalCustomer);
+
+                // Zeta Bank Burst
+                // realTimeScenarion(13,250, zetaHeavyCustomer);
 
                 snowpipeStream.close();
                 logger.info("exit!!!!!");
         }
 
-        private static void realTimeScenarion(long latency, long sleep) throws Exception {
+        private static void realTimeScenarion(long latency, long sleep, List<Customer> customers) throws Exception {
                 while (System.in.available() == 0) {
                         Thread.sleep(sleep);
                         LocalDateTime now = LocalDateTime.now();
-                        insert(now, now.plus(latency + 7, ChronoUnit.MILLIS), latency);
+                        insert(now, now.plus(latency + 7, ChronoUnit.MILLIS), latency, customers);
                 }
         }
 
@@ -97,7 +112,7 @@ public class App {
                 LocalDateTime nowDateTime = LocalDateTime.now();
                 while (currentDateTime.isBefore(nowDateTime)) {
                         logger.info(currentDateTime);
-                        insert(currentDateTime, currentDateTime.plus(20, ChronoUnit.MILLIS), 13);
+                        insert(currentDateTime, currentDateTime.plus(20, ChronoUnit.MILLIS), 13, normalCustomer);
                         currentDateTime = currentDateTime.plusSeconds(1);
                         if (currentDateTime.getHour() >= 15 && currentDateTime.getMinute() > 30)
                                 currentDateTime = currentDateTime.plusDays(1).withHour(14).withMinute(30).withSecond(0);
@@ -105,9 +120,10 @@ public class App {
                 }
         }
 
-        private static void insert(LocalDateTime newTransactTime, LocalDateTime tradeTransactTime, long latency)
+        private static void insert(LocalDateTime newTransactTime, LocalDateTime tradeTransactTime, long latency,
+                        List<Customer> customers)
                         throws Exception {
-                Customer fixClient = customers.get(random.nextInt(customers.size()));
+                Customer customers = customers.get(random.nextInt(customers.size()));
                 Asset asset = assets.get(random.nextInt(assets.size()));
                 Order order = orders.get(random.nextInt(orders.size()));
 
@@ -119,8 +135,8 @@ public class App {
                                 asset.symbol,
                                 asset.currency,
                                 asset.securityExchange,
-                                fixClient.senderCompID,
-                                fixClient.account, newTransactTime, 100);
+                                customers.senderCompID,
+                                customers.account, newTransactTime, 100);
                 snowpipeStream.insert(executionReportNew);
 
                 ExecutionReport executionReportTrade = fixMsgCreate.executionReportTrade(executionReportNew,
